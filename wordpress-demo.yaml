@@ -79,15 +79,15 @@ items:
                 name: mysql-config
                 key: username
           - name: MYSQL_ROOT_PASSWORD_FILE
-            value: /.secret/credential/rootCredential
+            value: /run/secrets/rootCredential
           - name: MYSQL_PASSWORD_FILE
-            ports: /.secret/credential/userCredential
+            ports: /run/secrets/userCredential
           - containerPort: 3306
             name: mysql
           volumeMounts:
           - mountPath: /var/lib/mysql
             name: mysql-data
-          - mountPath: /.secret/credential
+          - mountPath: /run/secrets
             name: credential-db
         volumes:
         - name: mysql-data
@@ -108,15 +108,15 @@ items:
 - kind: Service
   apiVersion: v1
   metadata:
-    name:  mysql-service
+    name: mysql-service
   spec:
     selector:
-      app:  mysql
-    type:  ClusterIP
+      app: mysql
+    type: ClusterIP
     ports:
-    - name:  mysql
-      port:  3306
-      targetPort:  3306
+    - name: mysql
+      port: 3306
+      targetPort: 3306
 
 
 # Wordpress
@@ -131,18 +131,18 @@ items:
 - apiVersion: v1
   kind: ConfigMap
   metadata:
-    name: wordpress-configuration
+    name: wordpress-config
     labels:
       app: wordpress
   data:
-    username-db: wordpress-dsa
+    host-db: mysql-service
     name-db: wordpress
-
+    username-db: wordpress-dsa
 
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
-    name: wordpress
+    name: wordpress-www
     namespace: live-demo
   spec:
     resources:
@@ -181,16 +181,41 @@ items:
               cpu: "500m"
               memory: "500Mi"
           env:
-          - name: ENVVARNAME
-            value: ENVVARVALUE       
+          - name: WORDPRESS_DB_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: wordpress-config
+                key: host-db
+          - name: WORDPRESS_DB_USER
+            valueFrom:
+              configMapKeyRef:
+                name: wordpress-config
+                key: username-db
+          - name: WORDPRESS_DB_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: wordpress-config
+                key: name-db
+          - name: WORDPRESS_DB_PASSWORD_FILE
+            value: /run/secrets/userCredential
           ports:
           - containerPort: 80
             name: http
           volumeMounts:
-          - mountPath: /data
-            name: data
+          - mountPath: /var/www/html
+            name: wordpress-www
+          - mountPath: /run/secrets
+            name: credential-db
         volumes:
           - name: data
-            emptyDir: {}
+            persistentVolumeClaim:
+              claimName: wordpress-www
+          - name: credential-db
+            secret: 
+              secretName: wordpress-secret
+              items:
+              - key: password
+                path: userCredential
+                mode: 256
         restartPolicy: Always
         imagePullPolicy: Always

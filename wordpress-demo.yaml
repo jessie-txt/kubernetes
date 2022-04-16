@@ -1,10 +1,144 @@
 apiVersion: v1
 kind: List
 items:
+# Namespace
 - apiVersion: v1
   kind: Namespace
   metadata:
-    name:  live-demo
+    name: live-demo
+
+# MySQL
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    name: mysql-secret
+    namespace: live-demo
+  data:
+    rootPassword: cm9vdA== # root
+    password: d29yZFBSRVNT # wordPRESS
+  type: Opaque
+  immutable: true
+
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: mysql-config
+    labels:
+      app: mysql
+    namespace: live-demo
+  data:
+    username: wordpress-dsa
+    database: wordpress
+
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: mysql-data
+  spec:
+    resources:
+      requests:
+        storage: 2Gi
+    volumeMode: Filesystem
+    accessModes:
+    - ReadWriteMany
+
+- apiVersion: v1
+  kind: Deployment
+  metadata:
+    name: mysql
+    labels:
+      name: mysql
+    namespace: live-demo
+  spec:
+    strategy:
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 1
+      type: RollingUpdate
+    template:
+      metadata:
+        labels:
+          name: mysql
+      spec:
+        containers:
+        - image: docker.io/library/mysql:8.0-debian
+          name: my-sql
+          resources:
+            requests:
+              cpu: "20m"
+              memory: "55M"
+          env:
+          - name: MYSQL_DATABASE
+            valueFrom:
+              configMapKeyRef:
+                name: mysql-config
+                key: database 
+          - name: MYSQL_USER
+            valueFrom:
+              configMapKeyRef:
+                name: mysql-config
+                key: username
+          - name: MYSQL_ROOT_PASSWORD_FILE
+            value: /.secret/credential/rootCredential
+          - name: MYSQL_PASSWORD_FILE
+            ports: /.secret/credential/userCredential
+          - containerPort: 3306
+            name: mysql
+          volumeMounts:
+          - mountPath: /var/lib/mysql
+            name: mysql-data
+          - mountPath: /.secret/credential
+            name: credential-db
+        volumes:
+        - name: mysql-data
+          persistentVolumeClaim:
+            claimName: mysql-data
+        - name: credential-db
+          secret: 
+            secretName: mysql-secret
+            items:
+            - key: rootPassword
+              path: rootCredential
+              mode: 256
+            - key: password
+              path: userCredential
+              mode: 256
+        restartPolicy: Always
+        imagePullPolicy: Always
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name:  mysql-service
+  spec:
+    selector:
+      app:  mysql
+    type:  ClusterIP
+    ports:
+    - name:  mysql
+      port:  3306
+      targetPort:  3306
+
+
+# Wordpress
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    name: wordpress-secret
+  data:
+    password: d29yZFBSRVNT # wordPRESS
+  type: Opaque
+
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: wordpress-configuration
+    labels:
+      app: wordpress
+  data:
+    username-db: wordpress-dsa
+    name-db: wordpress
+
+
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
@@ -16,14 +150,15 @@ items:
         storage: 2Gi
     volumeMode: Filesystem
     accessModes:
-      - ReadWriteOnce
+    - ReadWriteMany
+
 - apiVersion: v1
   kind: Deployment
   metadata:
     name: wordpress
     namespace: live-demo
     labels:
-      name:  wordpress
+      name: wordpress
   spec:
     strategy:
       rollingUpdate:
@@ -33,11 +168,11 @@ items:
     template:
       metadata:
         labels:
-          name:  wordpress
+          name: wordpress
       spec:
         containers:
-        - image:  docker.io/library/wordpress:php8.1-apache
-          name:  wordpress
+        - image: docker.io/library/wordpress:php8.1-apache
+          name: wordpress
           resources:
             requests:
               cpu: "20m"
@@ -45,24 +180,12 @@ items:
             limits:
               cpu: "500m"
               memory: "500Mi"
-          # livenessProbe:
-          #   httpGet:
-          #     path: /_status/healthz
-          #     port: 5000
-          #   initialDelaySeconds: 90
-          #   timeoutSeconds: 10
-          # readinessProbe:
-          #   httpGet:
-          #     path: /_status/healthz
-          #     port: 5000
-          #   initialDelaySeconds: 30
-          #   timeoutSeconds: 10
           env:
-          - name:  ENVVARNAME
-            value:  ENVVARVALUE       
+          - name: ENVVARNAME
+            value: ENVVARVALUE       
           ports:
-          - containerPort:  80
-            name:  http
+          - containerPort: 80
+            name: http
           volumeMounts:
           - mountPath: /data
             name: data

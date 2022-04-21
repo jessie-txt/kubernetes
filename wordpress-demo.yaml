@@ -78,16 +78,16 @@ items:
                 name: mysql-config
                 key: username
           - name: MYSQL_ROOT_PASSWORD_FILE
-            value: /run/secrets/rootCredential
+            value: /etc/secrets/rootCredential
           - name: MYSQL_PASSWORD_FILE
-            value: /run/secrets/userCredential
+            value: /etc/secrets/userCredential
           ports: 
           - containerPort: 3306
             name: mysql
           volumeMounts:
           - mountPath: /var/lib/mysql
             name: mysql-data
-          - mountPath: /run/secrets
+          - mountPath: /etc/secrets
             name: credential-db
         volumes:
         - name: mysql-data
@@ -96,13 +96,12 @@ items:
         - name: credential-db
           secret: 
             secretName: mysql-secret
+            defaultMode: 0440
             items:
             - key: rootPassword
               path: rootCredential
-              mode: 256
             - key: password
               path: userCredential
-              mode: 256
         restartPolicy: Always
 
 - kind: Service
@@ -198,14 +197,14 @@ items:
                 name: wordpress-config
                 key: name-db
           - name: WORDPRESS_DB_PASSWORD_FILE
-            value: /run/secrets/userCredential
+            value: /etc/secrets/userCredential
           ports:
           - containerPort: 80
             name: http
           volumeMounts:
           - mountPath: /var/www/html
             name: data
-          - mountPath: /run/secrets
+          - mountPath: /etc/secrets
             name: credential-db
         volumes:
           - name: data
@@ -214,10 +213,10 @@ items:
           - name: credential-db
             secret: 
               secretName: wordpress-secret
+              defaultMode: 0440
               items:
               - key: password
                 path: userCredential
-                mode: 256
         restartPolicy: Always
 
 - apiVersion: v1

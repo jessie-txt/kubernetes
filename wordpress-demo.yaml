@@ -50,11 +50,9 @@ items:
       name: mysql
     namespace: live-demo
   spec:
-    strategy:
-      rollingUpdate:
-        maxSurge: 1
-        maxUnavailable: 1
-      type: RollingUpdate
+    selector:
+      matchLabels:
+        name: mysql
     template:
       metadata:
         labels:
@@ -105,7 +103,6 @@ items:
               path: userCredential
               mode: 256
         restartPolicy: Always
-        imagePullPolicy: Always
 
 - kind: Service
   apiVersion: v1
@@ -162,11 +159,9 @@ items:
     labels:
       name: wordpress
   spec:
-    strategy:
-      rollingUpdate:
-        maxSurge: 1
-        maxUnavailable: 1
-      type: RollingUpdate
+    selector:
+      matchLabels:
+        name: wordpress
     template:
       metadata:
         labels:
@@ -220,7 +215,6 @@ items:
                 path: userCredential
                 mode: 256
         restartPolicy: Always
-        imagePullPolicy: Always
 
 - apiVersion: v1
   kind: Service

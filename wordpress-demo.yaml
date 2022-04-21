@@ -204,7 +204,7 @@ items:
             name: http
           volumeMounts:
           - mountPath: /var/www/html
-            name: wordpress-www
+            name: data
           - mountPath: /run/secrets
             name: credential-db
         volumes:

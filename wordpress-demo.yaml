@@ -232,23 +232,3 @@ items:
     - name:  http
       port:  80
       targetPort:  80
-
-- apiVersion: networking.k8s.io/v1
-  kind: Ingress
-  metadata:
-    name: wordpress-ingress
-    namespace: live-demo
-    labels:
-      name: wordpress-ingress
-  spec:
-    rules:
-    - host: wordpress.demo.jesaya
-      http:
-        paths:
-        - pathType: Prefix
-          path: "/"
-          backend:
-            service:
-              name: wordpress
-              port: 
-                number: 80

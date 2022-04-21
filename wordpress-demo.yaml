@@ -213,7 +213,7 @@ items:
           - name: credential-db
             secret: 
               secretName: wordpress-secret
-              defaultMode: 0440
+              defaultMode: 0444
               items:
               - key: password
                 path: userCredential

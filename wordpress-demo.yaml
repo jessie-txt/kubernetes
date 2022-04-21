@@ -23,9 +23,9 @@ items:
   kind: ConfigMap
   metadata:
     name: mysql-config
+    namespace: live-demo
     labels:
       app: mysql
-    namespace: live-demo
   data:
     username: wordpress-dsa
     database: wordpress
@@ -34,6 +34,7 @@ items:
   kind: PersistentVolumeClaim
   metadata:
     name: mysql-data
+    namespace: live-demo
   spec:
     resources:
       requests:
@@ -107,6 +108,7 @@ items:
 - kind: Service
   apiVersion: v1
   metadata:
+    namespace: live-demo
     name: mysql-service
   spec:
     selector:
@@ -123,6 +125,7 @@ items:
   kind: Secret
   metadata:
     name: wordpress-secret
+    namespace: live-demo
   data:
     password: d29yZFBSRVNT # wordPRESS
   type: Opaque
@@ -131,6 +134,7 @@ items:
   kind: ConfigMap
   metadata:
     name: wordpress-config
+    namespace: live-demo
     labels:
       app: wordpress
   data:
@@ -220,6 +224,7 @@ items:
   kind: Service
   metadata:
     name:  wordpress-svc
+    namespace: live-demo
   spec:
     selector:
       name: wordpress
@@ -233,6 +238,7 @@ items:
   kind: Ingress
   metadata:
     name: wordpress-ingress
+    namespace: live-demo
     labels:
       name: wordpress-ingress
   spec:

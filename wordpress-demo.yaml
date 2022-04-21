@@ -81,7 +81,8 @@ items:
           - name: MYSQL_ROOT_PASSWORD_FILE
             value: /run/secrets/rootCredential
           - name: MYSQL_PASSWORD_FILE
-            ports: /run/secrets/userCredential
+            value: /run/secrets/userCredential
+          ports: 
           - containerPort: 3306
             name: mysql
           volumeMounts:

@@ -111,7 +111,7 @@ items:
     name: mysql-service
   spec:
     selector:
-      app: mysql
+      name: mysql
     type: ClusterIP
     ports:
     - name: mysql

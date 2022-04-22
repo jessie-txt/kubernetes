@@ -239,9 +239,8 @@ items:
     name: wordpress-ingress
     labels:
       name: wordpress-ingress
-    annotations:
-      kubernetes.io/ingress.class: nginx
   spec:
+    ingressClassName: nginx
     rules:
     - host: wordpress.demo.jesaya
       http:

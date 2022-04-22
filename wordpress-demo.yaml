@@ -232,14 +232,16 @@ items:
     - name:  http
       port:  80
       targetPort:  80
+
 - apiVersion: networking.k8s.io/v1
   kind: Ingress
   metadata:
     name: wordpress-ingress
     labels:
       name: wordpress-ingress
+    annotations:
+      kubernetes.io/ingress.class: nginx
   spec:
-    ingressClassName: nginx
     rules:
     - host: wordpress.demo.jesaya
       http:

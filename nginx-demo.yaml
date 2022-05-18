@@ -5,13 +5,14 @@ items:
 - apiVersion: v1
   kind: Namespace
   metadata:
-    name:  nginx
+    name:  live-demo
 
 # NGINX
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
     name: nginx
+    namespace: live-demo
   spec:
     selector:
       matchLabels:
@@ -32,6 +33,7 @@ items:
   kind: Service
   metadata:
     name:  nginx-svc
+    namespace: live-demo
   spec:
     selector:
       name: nginx
